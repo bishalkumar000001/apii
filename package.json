@@ -1,0 +1,7 @@
+{
+  "name": "magma-music-api-runtime",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  }
+}

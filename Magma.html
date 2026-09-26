@@ -1,0 +1,2270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Magma API — Developer Portal</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<style>
+:root{
+ --bg:#f5f3ef;
+ --paper:#fff;
+ --ink:#202020;
+ --muted:#707070;
+ --line:#d4d2cc;
+ --line2:#bdbab1;
+ --accent:#c9991a;
+ --accent2:#a97908;
+ --green:#168548;
+ --blue:#2867b2;
+ --red:#b8473e;
+ --shadow:4px 4px 0 rgba(0,0,0,.055);
+}
+
+*{
+ box-sizing:border-box;
+}
+
+html{
+ scroll-behavior:smooth;
+}
+
+body{
+ margin:0;
+ background:
+ radial-gradient(circle at 12% 18%,#e9e4d844 0 2px,transparent 3px),
+ radial-gradient(circle at 85% 70%,#e3ddd244 0 2px,transparent 3px),
+ var(--bg);
+ color:var(--ink);
+ font-family:Inter,Arial,sans-serif;
+}
+
+a{
+ text-decoration:none;
+ color:inherit;
+}
+
+button,input{
+ font:inherit;
+}
+
+button{
+ cursor:pointer;
+}
+
+.wrap{
+ width:min(980px,calc(100% - 28px));
+ margin:auto;
+}
+
+/* ================= NAV ================= */
+
+.nav{
+ height:64px;
+ background:rgba(255,255,255,.9);
+ border-bottom:1px solid #dedbd4;
+ position:sticky;
+ top:0;
+ z-index:20;
+ backdrop-filter:blur(8px);
+}
+
+.navin{
+ height:100%;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+}
+
+.brand{
+ display:flex;
+ align-items:center;
+ font-weight:800;
+ font-size:18px;
+}
+
+.brand-mark{
+ width:31px;
+ height:31px;
+ border:2px solid var(--ink);
+ border-radius:50%;
+ display:grid;
+ place-items:center;
+ margin-right:8px;
+ transform:rotate(-4deg);
+ background:#fff;
+}
+
+.brand span{
+ color:var(--accent2);
+}
+
+.navlinks{
+ display:flex;
+ gap:5px;
+ align-items:center;
+}
+
+.navlinks a{
+ font-size:13px;
+ font-weight:700;
+ padding:7px 11px;
+ border-radius:999px;
+}
+
+.navlinks a:hover{
+ background:#f0eee9;
+}
+
+.navright{
+ display:flex;
+ align-items:center;
+ gap:7px;
+}
+
+.pill{
+ border:1.5px solid var(--line2);
+ background:#fff;
+ border-radius:999px;
+ padding:6px 11px;
+ font-size:11px;
+ font-weight:800;
+}
+
+.pill.live{
+ border-color:var(--green);
+ color:var(--green);
+ background:#1685480b;
+}
+
+.menu{
+ display:none;
+ border:1px solid var(--line);
+ background:#fff;
+ border-radius:9px;
+ padding:7px;
+}
+
+/* ================= HERO ================= */
+
+.hero{
+ padding:38px 0 18px;
+ text-align:center;
+}
+
+.hero-paper{
+ background:var(--paper);
+ border:2px dashed var(--line2);
+ border-radius:255px 15px 225px 15px/15px 225px 15px 255px;
+ box-shadow:var(--shadow);
+ padding:30px 18px;
+ position:relative;
+}
+
+.hero h1{
+ margin:0;
+ font-size:clamp(34px,6vw,51px);
+ line-height:1.08;
+ letter-spacing:-1.7px;
+}
+
+.under{
+ position:relative;
+ display:inline-block;
+}
+
+.under:after{
+ content:"";
+ position:absolute;
+ left:0;
+ right:0;
+ bottom:-5px;
+ height:7px;
+ background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 10'%3E%3Cpath d='M1 6 Q25 1 50 6 T99 5' fill='none' stroke='%23c9991a' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E")
+ center/100% 100% no-repeat;
+}
+
+.hand{
+ font-family:Caveat,cursive;
+ color:var(--accent2);
+ font-size:24px;
+ font-weight:700;
+ margin-top:8px;
+}
+
+.hero p{
+ max-width:650px;
+ margin:5px auto 0;
+ color:#666;
+ line-height:1.65;
+ font-size:14px;
+}
+
+.stamps{
+ display:flex;
+ justify-content:center;
+ gap:7px;
+ flex-wrap:wrap;
+ margin-top:13px;
+}
+
+.stamp{
+ font-family:"Patrick Hand",cursive;
+ font-size:13px;
+ font-weight:700;
+ padding:3px 10px;
+ border:1.7px dashed;
+ border-radius:255px 15px 225px 15px/15px 225px 15px 255px;
+ transform:rotate(-1deg);
+}
+
+.stamp:nth-child(2){
+ transform:rotate(1deg);
+ color:var(--blue);
+}
+
+.stamp:nth-child(3){
+ color:var(--green);
+ transform:rotate(-1.5deg);
+}
+
+.stamp:nth-child(4){
+ color:#8a5b13;
+ transform:rotate(1.2deg);
+}
+
+.actions{
+ display:flex;
+ justify-content:center;
+ gap:8px;
+ margin-top:17px;
+ flex-wrap:wrap;
+}
+
+.btn{
+ border:1.5px solid #a9a59d;
+ background:#fff;
+ border-radius:255px 15px 225px 15px/15px 225px 15px 255px;
+ padding:9px 15px;
+ font-size:12px;
+ font-weight:800;
+ cursor:pointer;
+ box-shadow:2px 2px 0 rgba(0,0,0,.08);
+}
+
+.btn:hover{
+ transform:translateY(-1px);
+}
+
+.btn.primary{
+ background:var(--accent);
+ border-color:#a87808;
+ color:#fff;
+}
+
+.note{
+ margin:18px auto 0;
+ max-width:720px;
+ background:#fff0a3;
+ border-left:6px solid #eab308;
+ padding:12px 17px;
+ text-align:left;
+ box-shadow:4px 4px 11px rgba(0,0,0,.09);
+ transform:rotate(-.5deg);
+ position:relative;
+}
+
+.note:before{
+ content:"API NOTE";
+ font:700 18px Caveat,cursive;
+ color:#79520d;
+ display:block;
+}
+
+.note p{
+ font:700 18px Caveat,cursive!important;
+ color:#4b3511!important;
+ margin:0!important;
+ line-height:1.3!important;
+}
+
+.tape{
+ position:absolute;
+ top:-9px;
+ left:45%;
+ width:68px;
+ height:18px;
+ background:#ffffff99;
+ transform:rotate(2deg);
+ border-left:1px dashed #aaa;
+ border-right:1px dashed #aaa;
+}
+
+/* ================= METRICS ================= */
+
+.metrics{
+ display:grid;
+ grid-template-columns:repeat(4,1fr);
+ gap:10px;
+ margin:20px 0;
+}
+
+.metric{
+ background:#fff;
+ border:2px dashed var(--line);
+ border-radius:12px;
+ padding:14px;
+ text-align:center;
+ box-shadow:var(--shadow);
+}
+
+.metric b{
+ font-size:20px;
+}
+
+.metric small{
+ display:block;
+ color:#777;
+ font-size:10px;
+ margin-top:3px;
+}
+
+/* ================= SECTIONS ================= */
+
+section{
+ padding-top:34px;
+}
+
+.section-title{
+ text-align:center;
+ margin-bottom:18px;
+}
+
+.section-title .small{
+ font:700 20px Caveat,cursive;
+ color:var(--accent2);
+}
+
+.section-title h2{
+ font-size:27px;
+ margin:0 0 3px;
+ letter-spacing:-.8px;
+}
+
+.section-title p{
+ font-size:12px;
+ color:#777;
+ margin:0;
+}
+
+/* ================= DOC ================= */
+
+.doc{
+ background:#fff;
+ border:2px dashed var(--line);
+ border-radius:16px;
+ box-shadow:6px 6px 0 rgba(0,0,0,.05);
+ padding:18px;
+}
+
+.tabs{
+ display:flex;
+ gap:7px;
+ flex-wrap:wrap;
+ border-bottom:2px dashed var(--line);
+ padding-bottom:11px;
+ margin-bottom:15px;
+}
+
+.tab{
+ border:1.5px solid var(--line);
+ background:#fafafa;
+ border-radius:255px 15px 225px 15px/15px 225px 15px 255px;
+ padding:7px 13px;
+ font-size:11px;
+ font-weight:800;
+ cursor:pointer;
+}
+
+.tab.active{
+ background:var(--accent);
+ color:#fff;
+ border-color:#a87808;
+ box-shadow:3px 3px 0 rgba(0,0,0,.12);
+ transform:rotate(-.5deg);
+}
+
+.dochead{
+ display:flex;
+ justify-content:space-between;
+ gap:10px;
+ align-items:start;
+}
+
+.route{
+ font:700 12px JetBrains Mono,monospace;
+ color:var(--green);
+}
+
+.title{
+ font-size:21px;
+ font-weight:800;
+ margin-top:4px;
+}
+
+.desc2{
+ color:#777;
+ font-size:12px;
+ margin-top:4px;
+}
+
+.docgrid{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:11px;
+ margin-top:16px;
+}
+
+.codebox{
+ background:#fafafa;
+ border:1px solid #d9d6cf;
+ border-radius:10px;
+ padding:13px;
+ position:relative;
+}
+
+.codebox h4{
+ font-size:9px;
+ letter-spacing:1px;
+ color:#777;
+ margin:0 0 8px;
+}
+
+pre{
+ margin:0;
+ white-space:pre-wrap;
+ word-break:break-word;
+ font:11px/1.65 JetBrains Mono,monospace;
+ color:#383838;
+}
+
+.copy{
+ position:absolute;
+ right:7px;
+ top:7px;
+ border:1px solid #d0ccc4;
+ background:#fff;
+ border-radius:7px;
+ font-size:9px;
+ padding:4px 7px;
+ cursor:pointer;
+}
+
+.endpoint-list{
+ margin-top:13px;
+ border-top:1px solid #e4e1db;
+ padding-top:11px;
+ display:grid;
+ grid-template-columns:repeat(2,1fr);
+ gap:6px;
+}
+
+.endpoint-line{
+ display:flex;
+ align-items:center;
+ gap:7px;
+ padding:8px;
+ border:1px solid #e4e1db;
+ border-radius:8px;
+ background:#fff;
+ font:10px JetBrains Mono,monospace;
+}
+
+.get{
+ color:var(--green);
+ font-weight:700;
+}
+
+/* ================= FEATURES ================= */
+
+.features{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:11px;
+}
+
+.feature{
+ background:#fff;
+ border:2px dashed var(--line);
+ border-radius:12px;
+ padding:16px;
+ box-shadow:3px 3px 0 rgba(0,0,0,.04);
+ transition:.2s;
+}
+
+.feature:hover{
+ transform:rotate(-.3deg) translateY(-2px);
+ border-color:#c7a54d;
+}
+
+.feature i{
+ font-size:17px;
+ color:var(--accent2);
+}
+
+.feature h3{
+ font-size:13px;
+ margin:9px 0 5px;
+}
+
+.feature p{
+ font-size:11px;
+ color:#777;
+ line-height:1.6;
+ margin:0;
+}
+
+/* ================= EXAMPLES ================= */
+
+.examples{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:11px;
+}
+
+.example{
+ background:#fff;
+ border:2px dashed var(--line);
+ border-radius:12px;
+ padding:16px;
+ box-shadow:3px 3px 0 rgba(0,0,0,.04);
+}
+
+.example h3{
+ font-size:14px;
+ margin:0 0 5px;
+}
+
+.example p{
+ font-size:11px;
+ color:#777;
+ margin:0 0 11px;
+}
+
+.darkcode{
+ background:#1c1c1c;
+ border-radius:10px;
+ padding:14px;
+ color:#eee;
+ position:relative;
+}
+
+.darkcode pre{
+ color:#eee;
+ padding-right:45px;
+}
+
+/* ================= STATUS ================= */
+
+.status{
+ display:grid;
+ grid-template-columns:1.3fr .7fr;
+ gap:11px;
+}
+
+.statusbox{
+ background:#fff;
+ border:2px dashed var(--line);
+ border-radius:14px;
+ padding:17px;
+ box-shadow:3px 3px 0 rgba(0,0,0,.04);
+}
+
+.statushead{
+ display:flex;
+ align-items:center;
+ gap:8px;
+ font-weight:800;
+ font-size:13px;
+}
+
+.statusdot{
+ width:9px;
+ height:9px;
+ border-radius:50%;
+ background:var(--green);
+ box-shadow:0 0 0 3px #16854815;
+}
+
+.statusdot.error{
+ background:var(--red);
+ box-shadow:0 0 0 3px #b8473e15;
+}
+
+.statusrow{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:7px;
+ margin-top:14px;
+}
+
+.statusitem{
+ border:1px solid #e0ddd7;
+ border-radius:8px;
+ padding:9px;
+}
+
+.statusitem small{
+ display:block;
+ color:#888;
+ font-size:9px;
+}
+
+.statusitem b{
+ font-size:10px;
+ color:var(--green);
+}
+
+.statusitem b.error{
+ color:var(--red);
+}
+
+.uptime{
+ font:700 25px Caveat,cursive;
+ color:var(--accent2);
+}
+
+.tiny{
+ font-size:10px;
+ color:#777;
+}
+
+/* ================= FOOTER ================= */
+
+footer{
+ padding:45px 0 24px;
+}
+
+.foot{
+ background:#fff;
+ border:2px dashed var(--line);
+ border-radius:255px 15px 225px 15px/15px 225px 15px 255px;
+ box-shadow:var(--shadow);
+ padding:20px;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:20px;
+}
+
+.footbrand{
+ font-weight:800;
+}
+
+.footbrand span{
+ color:var(--accent2);
+}
+
+.foot p{
+ margin:4px 0 0;
+ color:#888;
+ font-size:10px;
+}
+
+.footlinks{
+ display:flex;
+ gap:13px;
+ font-size:10px;
+ color:#777;
+ font-weight:700;
+}
+
+.copyr{
+ text-align:center;
+ color:#999;
+ font-size:9px;
+ margin-top:14px;
+}
+
+/* ================= MODAL ================= */
+
+.modal{
+ display:none;
+ position:fixed;
+ inset:0;
+ background:#0008;
+ z-index:50;
+ align-items:center;
+ justify-content:center;
+ padding:18px;
+}
+
+.modal.open{
+ display:flex;
+}
+
+.modalbox{
+ width:min(650px,100%);
+ max-height:90vh;
+ overflow:auto;
+ background:#fff;
+ border:2px dashed #bbb;
+ border-radius:16px;
+ box-shadow:8px 8px 0 #0004;
+ padding:18px;
+}
+
+.modalhead{
+ display:flex;
+ justify-content:space-between;
+}
+
+.close{
+ border:0;
+ background:none;
+ font-size:20px;
+ cursor:pointer;
+}
+
+.form{
+ display:flex;
+ gap:7px;
+ margin-top:14px;
+}
+
+.form input{
+ flex:1;
+ border:1.5px solid #ccc;
+ border-radius:10px;
+ padding:10px;
+ outline:0;
+ font:11px JetBrains Mono;
+}
+
+.result{
+ display:none;
+ margin-top:10px;
+ background:#1c1c1c;
+ color:#eee;
+ border-radius:9px;
+ padding:12px;
+ font:10px/1.6 JetBrains Mono;
+ white-space:pre-wrap;
+ word-break:break-word;
+}
+
+.test-meta{
+ display:flex;
+ gap:7px;
+ flex-wrap:wrap;
+ margin-top:10px;
+}
+
+.meta{
+ padding:5px 8px;
+ border:1px solid #ddd;
+ border-radius:7px;
+ font-size:9px;
+ font-weight:700;
+}
+
+.meta.success{
+ color:var(--green);
+ border-color:#16854855;
+}
+
+.meta.error{
+ color:var(--red);
+ border-color:#b8473e55;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media(max-width:760px){
+
+ .navlinks{
+  display:none;
+ }
+
+ .menu{
+  display:block;
+ }
+
+ .pill:not(.live){
+  display:none;
+ }
+
+ .metrics{
+  grid-template-columns:1fr 1fr;
+ }
+
+ .docgrid,
+ .examples,
+ .status{
+  grid-template-columns:1fr;
+ }
+
+ .features{
+  grid-template-columns:1fr 1fr;
+ }
+
+ .endpoint-list{
+  grid-template-columns:1fr;
+ }
+}
+
+@media(max-width:500px){
+
+ .wrap{
+  width:calc(100% - 18px);
+ }
+
+ .hero{
+  padding-top:25px;
+ }
+
+ .hero-paper{
+  padding:25px 12px;
+ }
+
+ .stamps{
+  gap:5px;
+ }
+
+ .features{
+  grid-template-columns:1fr;
+ }
+
+ .statusrow{
+  grid-template-columns:1fr;
+ }
+
+ .foot{
+  display:block;
+ }
+
+ .footlinks{
+  margin-top:14px;
+  flex-wrap:wrap;
+ }
+
+ .doc{
+  padding:12px;
+ }
+
+ .dochead{
+  display:block;
+ }
+
+ .dochead .btn{
+  margin-top:10px;
+ }
+
+ .form{
+  flex-direction:column;
+ }
+
+ .form .btn{
+  width:100%;
+ }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ================= NAV ================= -->
+
+<nav class="nav">
+
+ <div class="wrap navin">
+
+  <a class="brand" href="#">
+   <span class="brand-mark">
+    <i class="fa-solid fa-bolt"></i>
+   </span>
+   Magma<span>API</span>
+  </a>
+
+  <div class="navlinks">
+   <a href="#docs">API Docs</a>
+   <a href="#examples">Examples</a>
+   <a href="#features">Features</a>
+   <a href="#status">Status</a>
+  </div>
+
+  <div class="navright">
+
+   <span class="pill live" id="apiStatusPill">
+    <i class="fa-solid fa-circle" style="font-size:7px"></i>
+    Checking API...
+   </span>
+
+   <a class="pill" href="#docs">Docs</a>
+
+   <button class="menu">
+    <i class="fa-solid fa-ellipsis"></i>
+   </button>
+
+  </div>
+
+ </div>
+
+</nav>
+
+
+<!-- ================= HERO ================= -->
+
+<header class="hero">
+
+ <div class="wrap">
+
+  <div class="hero-paper">
+
+   <h1>
+    Your API.<br>
+    <span class="under">Your integration.</span>
+   </h1>
+
+   <div class="hand">
+    Simple endpoints. No unnecessary drama.
+   </div>
+
+   <p>
+    Magma API gives developers a straightforward way to
+    search, process and retrieve media through clean REST endpoints.
+   </p>
+
+   <div class="stamps">
+
+    <span class="stamp" style="color:#8a5b13">
+     <i class="fa-solid fa-code"></i>
+     REST API
+    </span>
+
+    <span class="stamp">
+     <i class="fa-solid fa-file-code"></i>
+     JSON
+    </span>
+
+    <span class="stamp">
+     <i class="fa-solid fa-bolt"></i>
+     Fast
+    </span>
+
+    <span class="stamp">
+     <i class="fa-solid fa-shield-halved"></i>
+     Reliable
+    </span>
+
+   </div>
+
+   <div class="actions">
+
+    <a class="btn primary" href="#docs">
+     <i class="fa-solid fa-book-open"></i>
+     Read API Docs
+    </a>
+
+    <button class="btn" onclick="openTester()">
+     <i class="fa-solid fa-flask"></i>
+     Test Endpoint
+    </button>
+
+   </div>
+
+  </div>
+
+
+  <div class="note">
+
+   <div class="tape"></div>
+
+   <p>
+    Connected to the live Magma API.
+    Base URL:
+    https://apixbishal-23ad6cb45349.herokuapp.com
+   </p>
+
+  </div>
+
+ </div>
+
+</header>
+
+
+<!-- ================= MAIN ================= -->
+
+<main class="wrap">
+
+
+<!-- METRICS -->
+
+<div class="metrics">
+
+ <div class="metric">
+  <b>REST</b>
+  <small>API style</small>
+ </div>
+
+ <div class="metric">
+  <b>JSON</b>
+  <small>Response format</small>
+ </div>
+
+ <div class="metric">
+  <b>24/7</b>
+  <small>Service target</small>
+ </div>
+
+ <div class="metric">
+  <b>v1</b>
+  <small>Current API</small>
+ </div>
+
+</div>
+
+
+<!-- ================= DOCUMENTATION ================= -->
+
+<section id="docs">
+
+ <div class="section-title">
+
+  <div class="small">
+   ✎ developer notebook
+  </div>
+
+  <h2>
+   API Documentation
+  </h2>
+
+  <p>
+   Everything you actually need to start using the API.
+  </p>
+
+ </div>
+
+
+ <div class="doc">
+
+
+  <!-- TABS -->
+
+  <div class="tabs">
+
+   <button class="tab active" data-api="search">
+    Search
+   </button>
+
+   <button class="tab" data-api="download">
+    Download
+   </button>
+
+   <button class="tab" data-api="video">
+    Video
+   </button>
+
+   <button class="tab" data-api="health">
+    Health
+   </button>
+
+  </div>
+
+
+  <!-- HEADER -->
+
+  <div class="dochead">
+
+   <div>
+
+    <div class="route" id="route">
+     GET /search
+    </div>
+
+    <div class="title" id="title">
+     Search media
+    </div>
+
+    <div class="desc2" id="desc">
+     Search the live Magma API.
+    </div>
+
+   </div>
+
+   <button class="btn" onclick="openTester()">
+    <i class="fa-solid fa-play"></i>
+    Try it
+   </button>
+
+  </div>
+
+
+  <!-- REQUEST RESPONSE -->
+
+  <div class="docgrid">
+
+
+   <div class="codebox">
+
+    <button class="copy"
+    onclick="copyBox('request',this)">
+     Copy
+    </button>
+
+    <h4>
+     REQUEST
+    </h4>
+
+    <pre id="request">GET https://apixbishal-23ad6cb45349.herokuapp.com/search?q=hello
+Accept: application/json</pre>
+
+   </div>
+
+
+   <div class="codebox">
+
+    <button class="copy"
+    onclick="copyBox('response',this)">
+     Copy
+    </button>
+
+    <h4>
+     LIVE RESPONSE
+    </h4>
+
+    <pre id="response">Press "Try it" or use Test Endpoint to call the live API.</pre>
+
+   </div>
+
+
+  </div>
+
+
+  <!-- ENDPOINTS -->
+
+  <div class="endpoint-list">
+
+   <div class="endpoint-line">
+    <span class="get">GET</span>
+    /search
+    <span style="color:#999">
+     search media
+    </span>
+   </div>
+
+   <div class="endpoint-line">
+    <span class="get">GET</span>
+    /download
+    <span style="color:#999">
+     audio delivery
+    </span>
+   </div>
+
+   <div class="endpoint-line">
+    <span class="get">GET</span>
+    /video
+    <span style="color:#999">
+     video delivery
+    </span>
+   </div>
+
+   <div class="endpoint-line">
+    <span class="get">GET</span>
+    /health
+    <span style="color:#999">
+     service check
+    </span>
+   </div>
+
+  </div>
+
+
+ </div>
+
+</section>
+
+
+<!-- ================= EXAMPLES ================= -->
+
+<section id="examples">
+
+ <div class="section-title">
+
+  <div class="small">
+   ✎ copy & paste
+  </div>
+
+  <h2>
+   Integration Examples
+  </h2>
+
+  <p>
+   Small examples, because documentation shouldn't be homework.
+  </p>
+
+ </div>
+
+
+ <div class="examples">
+
+
+  <!-- CURL -->
+
+  <div class="example">
+
+   <h3>
+    <i class="fa-solid fa-terminal"></i>
+    cURL
+   </h3>
+
+   <p>
+    Test the live API directly from your terminal.
+   </p>
+
+   <div class="darkcode">
+
+    <button class="copy"
+    onclick="copyBox('curl',this)">
+     Copy
+    </button>
+
+    <pre id="curl">curl "https://apixbishal-23ad6cb45349.herokuapp.com/search?q=hello"</pre>
+
+   </div>
+
+  </div>
+
+
+  <!-- JAVASCRIPT -->
+
+  <div class="example">
+
+   <h3>
+    <i class="fa-brands fa-js"></i>
+    JavaScript
+   </h3>
+
+   <p>
+    Use the live JSON response inside your application.
+   </p>
+
+   <div class="darkcode">
+
+    <button class="copy"
+    onclick="copyBox('js',this)">
+     Copy
+    </button>
+
+    <pre id="js">const response = await fetch(
+  "https://apixbishal-23ad6cb45349.herokuapp.com/search?q=hello"
+);
+
+const data = await response.json();
+
+console.log(data);</pre>
+
+   </div>
+
+  </div>
+
+
+ </div>
+
+</section>
+
+
+<!-- ================= FEATURES ================= -->
+
+<section id="features">
+
+ <div class="section-title">
+
+  <div class="small">
+   ✎ why Magma API
+  </div>
+
+  <h2>
+   Made for actual developers
+  </h2>
+
+  <p>
+   Useful pieces without turning the homepage into a giant dashboard.
+  </p>
+
+ </div>
+
+
+ <div class="features">
+
+  <div class="feature">
+
+   <i class="fa-solid fa-bolt"></i>
+
+   <h3>
+    Fast requests
+   </h3>
+
+   <p>
+    Lightweight endpoints designed to get the useful response back quickly.
+   </p>
+
+  </div>
+
+
+  <div class="feature">
+
+   <i class="fa-solid fa-link"></i>
+
+   <h3>
+    Direct delivery
+   </h3>
+
+   <p>
+    Useful media and file information returned by the live API.
+   </p>
+
+  </div>
+
+
+  <div class="feature">
+
+   <i class="fa-solid fa-code"></i>
+
+   <h3>
+    Simple integration
+   </h3>
+
+   <p>
+    Use it from bots, scripts, websites or your own backend.
+   </p>
+
+  </div>
+
+
+  <div class="feature">
+
+   <i class="fa-solid fa-database"></i>
+
+   <h3>
+    Cache friendly
+   </h3>
+
+   <p>
+    Suitable for applications that reuse previously resolved resources.
+   </p>
+
+  </div>
+
+
+  <div class="feature">
+
+   <i class="fa-solid fa-circle-check"></i>
+
+   <h3>
+    Predictable responses
+   </h3>
+
+   <p>
+    Client-side handling can use the actual JSON returned by your API.
+   </p>
+
+  </div>
+
+
+  <div class="feature">
+
+   <i class="fa-solid fa-mobile-screen"></i>
+
+   <h3>
+    Mobile friendly
+   </h3>
+
+   <p>
+    Documentation remains usable even when developing from a phone.
+   </p>
+
+  </div>
+
+
+ </div>
+
+</section>
+
+
+<!-- ================= STATUS ================= -->
+
+<section id="status">
+
+ <div class="section-title">
+
+  <div class="small">
+   ✎ little green light
+  </div>
+
+  <h2>
+   Service Status
+  </h2>
+
+  <p>
+   Status is checked against the live API.
+  </p>
+
+ </div>
+
+
+ <div class="status">
+
+
+  <div class="statusbox">
+
+   <div class="statushead">
+
+    <span
+    class="statusdot"
+    id="statusDot">
+    </span>
+
+    <span id="statusText">
+     Checking live API...
+    </span>
+
+   </div>
+
+
+   <div class="statusrow">
+
+    <div class="statusitem">
+
+     <small>
+      API
+     </small>
+
+     <b id="apiState">
+      Checking
+     </b>
+
+    </div>
+
+
+    <div class="statusitem">
+
+     <small>
+      Search
+     </small>
+
+     <b id="searchState">
+      Checking
+     </b>
+
+    </div>
+
+
+    <div class="statusitem">
+
+     <small>
+      Delivery
+     </small>
+
+     <b id="deliveryState">
+      Checking
+     </b>
+
+    </div>
+
+   </div>
+
+  </div>
+
+
+  <div class="statusbox">
+
+   <div class="uptime" id="latency">
+    —
+   </div>
+
+   <div class="tiny">
+    Live API response latency
+   </div>
+
+  </div>
+
+
+ </div>
+
+</section>
+
+
+</main>
+
+
+<!-- ================= FOOTER ================= -->
+
+<footer>
+
+ <div class="wrap">
+
+  <div class="foot">
+
+   <div>
+
+    <div class="footbrand">
+     Magma<span>API</span>
+    </div>
+
+    <p>
+     Connected to your live API endpoint.
+    </p>
+
+   </div>
+
+
+   <div class="footlinks">
+
+    <a href="#docs">
+     API Docs
+    </a>
+
+    <a href="#examples">
+     Examples
+    </a>
+
+    <a href="#status">
+     Status
+    </a>
+
+    <a href="https://apixbishal-23ad6cb45349.herokuapp.com"
+       target="_blank">
+     API
+    </a>
+
+   </div>
+
+  </div>
+
+
+  <div class="copyr">
+   © 2026 Magma API · Developer Portal
+  </div>
+
+ </div>
+
+</footer>
+
+
+<!-- ================= TEST MODAL ================= -->
+
+<div class="modal" id="modal">
+
+ <div class="modalbox">
+
+  <div class="modalhead">
+
+   <div>
+
+    <div style="font:700 19px Caveat;color:#a97908">
+     Live test
+    </div>
+
+    <b>
+     Try an API endpoint
+    </b>
+
+   </div>
+
+   <button
+   class="close"
+   onclick="closeTester()">
+
+    <i class="fa-solid fa-xmark"></i>
+
+   </button>
+
+  </div>
+
+
+  <div class="form">
+
+   <input
+   id="testurl"
+   value="https://apixbishal-23ad6cb45349.herokuapp.com/health">
+
+   <button
+   class="btn primary"
+   onclick="runTest()">
+
+    Run
+
+   </button>
+
+  </div>
+
+
+  <div class="test-meta" id="testMeta"></div>
+
+
+  <div
+  class="result"
+  id="result">
+  </div>
+
+ </div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   MAGMA API CONFIG
+========================================================= */
+
+const API_BASE =
+"https://apixbishal-23ad6cb45349.herokuapp.com";
+
+
+/* =========================================================
+   API DOCUMENTATION
+========================================================= */
+
+const apis = {
+
+ search:{
+  route:"GET /search",
+  title:"Search media",
+  desc:"Search the live Magma API and receive its actual JSON response.",
+  request:
+`GET ${API_BASE}/search?q=hello
+Accept: application/json`
+ },
+
+ download:{
+  route:"GET /download",
+  title:"Audio download",
+  desc:"Call the live audio endpoint using a media URL.",
+  request:
+`GET ${API_BASE}/download?url=MEDIA_URL
+Accept: application/json`
+ },
+
+ video:{
+  route:"GET /video",
+  title:"Video download",
+  desc:"Call the live video endpoint using a media URL.",
+  request:
+`GET ${API_BASE}/video?url=MEDIA_URL
+Accept: application/json`
+ },
+
+ health:{
+  route:"GET /health",
+  title:"Health check",
+  desc:"Check the live Magma API service.",
+  request:
+`GET ${API_BASE}/health
+Accept: application/json`
+ }
+
+};
+
+
+/* =========================================================
+   TAB SWITCHING
+========================================================= */
+
+document.querySelectorAll(".tab").forEach(tab=>{
+
+ tab.onclick=()=>{
+
+  document
+  .querySelectorAll(".tab")
+  .forEach(x=>x.classList.remove("active"));
+
+  tab.classList.add("active");
+
+  const data =
+  apis[tab.dataset.api];
+
+  document.getElementById("route")
+  .textContent=data.route;
+
+  document.getElementById("title")
+  .textContent=data.title;
+
+  document.getElementById("desc")
+  .textContent=data.desc;
+
+  document.getElementById("request")
+  .textContent=data.request;
+
+  document.getElementById("response")
+  .textContent=
+  "Press \"Try it\" to call the live endpoint.";
+
+  /*
+     Automatically set the tester URL
+  */
+
+  if(tab.dataset.api==="search"){
+
+   document.getElementById("testurl").value =
+   API_BASE + "/search?q=hello";
+
+  }
+
+  if(tab.dataset.api==="download"){
+
+   document.getElementById("testurl").value =
+   API_BASE + "/download?url=MEDIA_URL";
+
+  }
+
+  if(tab.dataset.api==="video"){
+
+   document.getElementById("testurl").value =
+   API_BASE + "/video?url=MEDIA_URL";
+
+  }
+
+  if(tab.dataset.api==="health"){
+
+   document.getElementById("testurl").value =
+   API_BASE + "/health";
+
+  }
+
+ };
+
+});
+
+
+/* =========================================================
+   COPY
+========================================================= */
+
+function copyBox(id,button){
+
+ const element =
+ document.getElementById(id);
+
+ const text =
+ element.innerText;
+
+ navigator.clipboard
+ .writeText(text)
+ .then(()=>{
+
+  const old =
+  button.textContent;
+
+  button.textContent="Copied";
+
+  setTimeout(()=>{
+   button.textContent=old;
+  },900);
+
+ })
+ .catch(()=>{
+
+  const textarea =
+  document.createElement("textarea");
+
+  textarea.value=text;
+
+  document.body.appendChild(textarea);
+
+  textarea.select();
+
+  document.execCommand("copy");
+
+  textarea.remove();
+
+  const old =
+  button.textContent;
+
+  button.textContent="Copied";
+
+  setTimeout(()=>{
+   button.textContent=old;
+  },900);
+
+ });
+
+}
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+function openTester(){
+
+ document
+ .getElementById("modal")
+ .classList.add("open");
+
+}
+
+function closeTester(){
+
+ document
+ .getElementById("modal")
+ .classList.remove("open");
+
+}
+
+
+/* =========================================================
+   LIVE API TEST
+========================================================= */
+
+async function runTest(){
+
+ const input =
+ document.getElementById("testurl");
+
+ const out =
+ document.getElementById("result");
+
+ const meta =
+ document.getElementById("testMeta");
+
+ const url =
+ input.value.trim();
+
+
+ if(!url){
+
+  out.style.display="block";
+
+  out.textContent=
+  "Please enter an API URL.";
+
+  return;
+
+ }
+
+
+ out.style.display="block";
+
+ out.textContent=
+ "Requesting live API...";
+
+
+ meta.innerHTML="";
+
+
+ const started =
+ performance.now();
+
+
+ try{
+
+  const response =
+  await fetch(url,{
+
+   method:"GET",
+
+   headers:{
+    "Accept":"application/json"
+   }
+
+  });
+
+
+  const elapsed =
+  Math.round(
+   performance.now()-started
+  );
+
+
+  const contentType =
+  response.headers.get(
+   "content-type"
+  ) || "";
+
+
+  let body;
+
+
+  if(
+   contentType.includes("application/json")
+  ){
+
+   try{
+
+    const json =
+    await response.json();
+
+    body =
+    JSON.stringify(
+     json,
+     null,
+     2
+    );
+
+   }catch{
+
+    body =
+    await response.text();
+
+   }
+
+  }else{
+
+   body =
+   await response.text();
+
+  }
+
+
+  out.textContent =
+`HTTP ${response.status}
+Response Time: ${elapsed} ms
+
+${body}`;
+
+
+  meta.innerHTML=`
+
+   <span class="meta ${response.ok ? "success":"error"}">
+    HTTP ${response.status}
+   </span>
+
+   <span class="meta">
+    ${elapsed} ms
+   </span>
+
+   <span class="meta">
+    ${contentType || "unknown content-type"}
+   </span>
+
+  `;
+
+
+  /*
+     Update documentation response
+  */
+
+  document.getElementById("response")
+  .textContent=body;
+
+
+ }catch(error){
+
+  const elapsed =
+  Math.round(
+   performance.now()-started
+  );
+
+
+  out.textContent =
+`Request failed.
+
+${error.message}
+
+Possible reasons:
+
+• API is offline
+• ngrok tunnel expired
+• Endpoint does not exist
+• CORS is not enabled
+• Browser blocked the request
+• Network connection problem
+
+API:
+${url}`;
+
+
+  meta.innerHTML=`
+
+   <span class="meta error">
+    Request Failed
+   </span>
+
+   <span class="meta">
+    ${elapsed} ms
+   </span>
+
+  `;
+
+ }
+
+}
+
+
+/* =========================================================
+   LIVE HEALTH CHECK
+========================================================= */
+
+async function checkAPI(){
+
+ const pill =
+ document.getElementById(
+  "apiStatusPill"
+ );
+
+ const statusText =
+ document.getElementById(
+  "statusText"
+ );
+
+ const statusDot =
+ document.getElementById(
+  "statusDot"
+ );
+
+ const apiState =
+ document.getElementById(
+  "apiState"
+ );
+
+ const searchState =
+ document.getElementById(
+  "searchState"
+ );
+
+ const deliveryState =
+ document.getElementById(
+  "deliveryState"
+ );
+
+ const latency =
+ document.getElementById(
+  "latency"
+ );
+
+
+ const started =
+ performance.now();
+
+
+ try{
+
+  const response =
+  await fetch(
+   API_BASE + "/health",
+   {
+    method:"GET",
+    headers:{
+     "Accept":"application/json"
+    },
+    cache:"no-store"
+   }
+  );
+
+
+  const elapsed =
+  Math.round(
+   performance.now()-started
+  );
+
+
+  latency.textContent =
+  elapsed + " ms";
+
+
+  if(response.ok){
+
+   pill.innerHTML =
+   '<i class="fa-solid fa-circle" style="font-size:7px"></i> API Online';
+
+   pill.style.borderColor =
+   "var(--green)";
+
+   pill.style.color =
+   "var(--green)";
+
+
+   statusText.textContent =
+   "All systems operational";
+
+
+   statusDot.classList.remove(
+    "error"
+   );
+
+
+   apiState.textContent =
+   "Operational";
+
+   apiState.classList.remove(
+    "error"
+   );
+
+
+   searchState.textContent =
+   "Available";
+
+   searchState.classList.remove(
+    "error"
+   );
+
+
+   deliveryState.textContent =
+   "Available";
+
+   deliveryState.classList.remove(
+    "error"
+   );
+
+
+  }else{
+
+   setOfflineState();
+
+  }
+
+
+ }catch(error){
+
+  setOfflineState();
+
+ }
+
+}
+
+
+/* =========================================================
+   OFFLINE STATE
+========================================================= */
+
+function setOfflineState(){
+
+ const pill =
+ document.getElementById(
+  "apiStatusPill"
+ );
+
+ const statusText =
+ document.getElementById(
+  "statusText"
+ );
+
+ const statusDot =
+ document.getElementById(
+  "statusDot"
+ );
+
+
+ pill.innerHTML =
+ '<i class="fa-solid fa-circle" style="font-size:7px"></i> API Offline';
+
+ pill.style.borderColor =
+ "var(--red)";
+
+ pill.style.color =
+ "var(--red)";
+
+
+ statusText.textContent =
+ "API unavailable";
+
+
+ statusDot.classList.add(
+  "error"
+ );
+
+
+ document.getElementById(
+  "apiState"
+ ).textContent="Unavailable";
+
+
+ document.getElementById(
+  "apiState"
+ ).classList.add("error");
+
+
+ document.getElementById(
+  "searchState"
+ ).textContent="Unknown";
+
+
+ document.getElementById(
+  "searchState"
+ ).classList.add("error");
+
+
+ document.getElementById(
+  "deliveryState"
+ ).textContent="Unknown";
+
+
+ document.getElementById(
+  "deliveryState"
+ ).classList.add("error");
+
+
+ document.getElementById(
+  "latency"
+ ).textContent="—";
+
+}
+
+
+/* =========================================================
+   CLOSE MODAL BY CLICKING OUTSIDE
+========================================================= */
+
+document
+.getElementById("modal")
+.addEventListener("click",e=>{
+
+ if(
+  e.target.id==="modal"
+ ){
+
+  closeTester();
+
+ }
+
+});
+
+
+/* =========================================================
+   ESC KEY
+========================================================= */
+
+document.addEventListener(
+ "keydown",
+ e=>{
+
+  if(e.key==="Escape"){
+
+   closeTester();
+
+  }
+
+ });
+
+
+/* =========================================================
+   START LIVE STATUS CHECK
+========================================================= */
+
+checkAPI();
+
+
+/*
+   Refresh status every 30 seconds
+*/
+
+setInterval(
+ checkAPI,
+ 30000
+);
+
+</script>
+
+</body>
+</html>

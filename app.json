@@ -1,0 +1,25 @@
+{
+  "name": "Magma Music API",
+  "description": "FastAPI YouTube/YouTube Music API prepared for Heroku",
+  "buildpacks": [
+    {"url": "heroku/python"},
+    {"url": "heroku/nodejs"},
+    {"url": "https://github.com/heroku/heroku-buildpack-apt"}
+  ],
+  "env": {
+    "COOKIE_URL": {
+      "description": "Public URL of the yt-dlp cookies.txt file",
+      "required": false,
+      "value": "https://raw.githubusercontent.com/themagmalord333-oss/COOKIE/main/cookies.txt"
+    },
+    "DOWNLOAD_DIR": {"value": "downloads"},
+    "CACHE_EXPIRE_HOURS": {"value": "24"},
+    "MAX_VIDEO_QUALITY": {"value": "720"},
+    "DOWNLOAD_WORKERS": {"value": "4"},
+    "CONCURRENT_FRAGMENT_DOWNLOADS": {"value": "15"},
+    "HTTP_CHUNK_SIZE": {"value": "10485760"},
+    "SOCKET_TIMEOUT": {"value": "15"},
+    "RETRIES": {"value": "5"},
+    "FRAGMENT_RETRIES": {"value": "5"}
+  }
+}
