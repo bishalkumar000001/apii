@@ -1,0 +1,81 @@
+name: Delete All Action Runs
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  delete-runs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Delete All Completed Runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -e
+
+          echo "======================================"
+          echo "     MAGMA ACTION RUN CLEANUP"
+          echo "======================================"
+
+          total=0
+
+          while true; do
+
+            gh api \
+              --paginate \
+              --slurp \
+              -H "Accept: application/vnd.github+json" \
+              "/repos/$REPO/actions/runs?per_page=100" \
+              --jq '
+                .[][]
+                | .workflow_runs[]
+                | select(.status == "completed")
+                | .id
+              ' > /tmp/run_ids.txt
+
+            if [ ! -s /tmp/run_ids.txt ]; then
+              echo ""
+              echo "======================================"
+              echo "✅ NO COMPLETED RUNS LEFT"
+              echo "======================================"
+              break
+            fi
+
+            while read -r RUN_ID; do
+
+              [ -z "$RUN_ID" ] && continue
+
+              echo "🗑️ Deleting run: $RUN_ID"
+
+              if gh api \
+                --method DELETE \
+                -H "Accept: application/vnd.github+json" \
+                "/repos/$REPO/actions/runs/$RUN_ID" >/dev/null 2>&1; then
+
+                echo "✅ Deleted: $RUN_ID"
+                total=$((total + 1))
+
+              else
+
+                echo "⚠️ Could not delete: $RUN_ID"
+
+              fi
+
+            done < /tmp/run_ids.txt
+
+            echo ""
+            echo "Deleted so far: $total"
+
+          done
+
+          echo ""
+          echo "======================================"
+          echo "       CLEANUP FINISHED"
+          echo "======================================"
+          echo "Total deleted: $total"

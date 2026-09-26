@@ -1,0 +1,32 @@
+name: MAGMA API Auto Restart
+
+on:
+  workflow_run:
+    workflows: ["MAGMA Music API"]
+    types:
+      - completed
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  restart-api:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Wait Before Restart
+        run: sleep 20
+
+      - name: Start Next API Run
+        env:
+          GH_TOKEN: ${{ secrets.GH_PERSONAL_TOKEN }}
+        run: |
+          echo "Previous MAGMA API run completed."
+          echo "Starting next MAGMA API run..."
+
+          gh workflow run main.yml \
+            --repo "${{ github.repository }}" \
+            --ref main
+
+          echo "✅ Next MAGMA API run triggered successfully."
