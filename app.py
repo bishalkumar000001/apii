@@ -121,7 +121,7 @@ async def require_api_key(
         now = time.time()
         with sqlite3.connect(DB_FILE) as conn:
             conn.row_factory = sqlite3.Row
-            row = conn.execute("SELECT u.id AS user_id, s.requests, s.requests_used, s.expires FROM user_keys k JOIN subscriptions s ON s.user_id=k.user_id AND s.status='active' AND s.expires>? JOIN users u ON u.id=k.user_id WHERE k.key=? AND k.revoked=0 ORDER BY s.expires DESC LIMIT 1", (now, supplied_key)).fetchone()
+            row = conn.execute("SELECT u.id AS user_id, p.requests, s.requests_used, s.expires FROM user_keys k JOIN subscriptions s ON s.user_id=k.user_id AND s.status='active' AND s.expires>? JOIN plans p ON p.id=s.plan_id AND p.active=1 JOIN users u ON u.id=k.user_id WHERE k.key=? AND k.revoked=0 ORDER BY s.expires DESC LIMIT 1", (now, supplied_key)).fetchone()
         if row:
             if row[2] >= row[1]:
                 raise HTTPException(status_code=429, detail="API request limit reached for your current subscription.")
