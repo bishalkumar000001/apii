@@ -2,7 +2,6 @@ import os
 import re
 import time
 import asyncio
-import uuid
 import sqlite3
 import logging
 import urllib.request
@@ -586,31 +585,6 @@ app = FastAPI(
 )
 
 app.include_router(billing_router)
-
-# In-process job registry for downloads that may exceed Heroku's 30-second
-# router timeout. Clients poll the status endpoint until the file is ready.
-DOWNLOAD_JOBS: Dict[str, Dict[str, Any]] = {}
-DOWNLOAD_JOBS_MAX = 500
-
-async def _run_download_job(job_id: str, downloader, url: str, media_type: str) -> None:
-    job = DOWNLOAD_JOBS.get(job_id)
-    if not job:
-        return
-    job["status"] = "processing"
-    try:
-        result = await asyncio.to_thread(downloader, url)
-        job.update({
-            "status": "completed",
-            "result": result,
-            "download_url": result.get("download_url"),
-            "filename": result.get("filename"),
-            "title": result.get("title"),
-            "media_type": media_type,
-            "completed_at": time.time(),
-        })
-    except Exception as exc:
-        logger.exception("Background %s download job %s failed", media_type, job_id)
-        job.update({"status": "failed", "error": str(exc), "completed_at": time.time()})
 
 
 # =========================================================
@@ -1784,16 +1758,15 @@ async def download_media(
     ),
 
     response: str = Query(
-        "job",
-        description="Response mode: job (recommended), file (synchronous), or json (synchronous metadata)"
+        "file",
+        description="Response mode: file or json"
     )
 ):
-    """Start an audio/video download job by default to avoid Heroku's 30s H12 timeout.
+    """Download audio or video and return the actual media by default.
 
-    /download?url=VIDEO_ID&type=audio -> returns a job ID immediately
-    Poll /download/status/JOB_ID until completed, then fetch file_url.
-    Use response=file only for short downloads where a synchronous file response is desired.
-    Use response=json for synchronous metadata JSON (may timeout for long downloads).
+    /download?url=VIDEO_ID&type=audio -> MP3
+    /download?url=VIDEO_ID&type=video -> MP4
+    Add response=json when metadata JSON is required.
     """
 
     media_type = type.strip().lower()
@@ -1808,12 +1781,12 @@ async def download_media(
             }
         )
 
-    if response_mode not in {"file", "json", "job"}:
+    if response_mode not in {"file", "json"}:
         raise HTTPException(
             status_code=400,
             detail={
                 "error": "Invalid response mode",
-                "message": "response must be 'file', 'json', or 'job'"
+                "message": "response must be either 'file' or 'json'"
             }
         )
 
@@ -1823,33 +1796,6 @@ async def download_media(
             if media_type == "audio"
             else download_video_sync
         )
-
-        if response_mode == "job":
-            # Bound memory use; retain active jobs and recent completed jobs.
-            if len(DOWNLOAD_JOBS) >= DOWNLOAD_JOBS_MAX:
-                finished = [
-                    key for key, value in DOWNLOAD_JOBS.items()
-                    if value.get("status") in {"completed", "failed"}
-                ]
-                for key in finished[: max(1, len(DOWNLOAD_JOBS) - DOWNLOAD_JOBS_MAX + 1)]:
-                    DOWNLOAD_JOBS.pop(key, None)
-            job_id = uuid.uuid4().hex
-            DOWNLOAD_JOBS[job_id] = {
-                "job_id": job_id,
-                "status": "queued",
-                "media_type": media_type,
-                "created_at": time.time(),
-            }
-            asyncio.create_task(_run_download_job(job_id, downloader, url, media_type))
-            return JSONResponse(
-                status_code=202,
-                content={
-                    "status": "queued",
-                    "job_id": job_id,
-                    "status_url": f"/download/status/{job_id}",
-                    "message": "Download started. Poll status_url until status is completed.",
-                },
-            )
 
         result = await asyncio.to_thread(
             downloader,
@@ -1939,30 +1885,6 @@ async def download_media(
 
 # =========================================================
 
-# BACKGROUND DOWNLOAD JOB STATUS API
-# =========================================================
-
-@app.get("/download/status/{job_id}")
-async def download_job_status(
-    job_id: str,
-    _: bool = Depends(require_api_key),
-):
-    job = DOWNLOAD_JOBS.get(job_id)
-    if not job:
-        raise HTTPException(
-            status_code=404,
-            detail={
-                "error": "Download job not found",
-                "message": "The job may have expired or this dyno may have restarted.",
-            },
-        )
-    response_data = {key: value for key, value in job.items() if key != "result"}
-    if job.get("status") == "completed":
-        response_data["file_url"] = job.get("download_url")
-    return JSONResponse(content=response_data)
-
-
-# =========================================================
 # VIDEO DOWNLOAD API
 # =========================================================
 
