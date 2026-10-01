@@ -1524,7 +1524,22 @@ console.log(data);</pre>
 </section>
 <section id="faq" class="portal-extra"><div class="section-title"><div class="small">help center</div><h2>Frequently asked questions</h2></div><div class="faq-grid"><details><summary>Where do I get an API key?</summary><p>Create an account at <a href="/account">/account</a>, then create a key in the API keys panel. Copy it immediately because the full key is shown only once.</p></details><details><summary>How does manual payment work?</summary><p>Pay using the details displayed in your account, submit your transaction reference, and wait for the owner to verify and approve it.</p></details><details><summary>How do I protect my key?</summary><p>Keep keys on your server, use the X-API-Key header, and revoke any key that may have been exposed. Do not place secrets in public client-side code.</p></details><details><summary>Where can I check API usage?</summary><p>Sign in to the account dashboard and open Usage & examples to review recent authenticated requests and billing mode.</p></details></div></section>
 <style>
-.portal-extra{margin:70px 0;padding:28px 0;border-top:1px solid var(--line,#293650)}.pricing-grid,.extra-grid,.faq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}.price-card,.extra-card,.faq-grid details{background:var(--panel,#131b30);border:1px solid var(--line,#293650);border-radius:16px;padding:22px}.price-card.featured{border-color:#7d9aff;box-shadow:0 0 0 1px #7d9aff33}.plan-price{font-size:32px;font-weight:800;margin:12px 0}.plan-price small{font-size:13px;font-weight:500}.price-card ul{padding-left:20px;line-height:2}.price-card .btn{display:inline-block;text-decoration:none;margin-top:10px}.extra-grid{margin-top:20px}.faq-grid details{margin:0}.faq-grid summary{cursor:pointer;font-weight:700}.faq-grid p{color:var(--muted,#aab6cf);line-height:1.6}
+/* High-contrast pricing, feature and FAQ cards: match the light paper theme. */
+.portal-extra{margin:70px 0;padding:28px 0;border-top:1px solid var(--line,#d4d2cc);color:var(--ink,#202020)}
+.pricing-grid,.extra-grid,.faq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.price-card,.extra-card,.faq-grid details{background:var(--paper,#fff);color:var(--ink,#202020);border:1px solid var(--line,#d4d2cc);border-radius:16px;padding:22px;box-shadow:var(--shadow,4px 4px 0 rgba(0,0,0,.055))}
+.price-card.featured{border-color:#7d9aff;box-shadow:0 0 0 1px #7d9aff33,4px 4px 0 rgba(0,0,0,.04)}
+.price-card h3,.extra-card h3,.faq-grid summary{color:var(--ink,#202020)}
+.price-card p,.extra-card p,.faq-grid p{color:var(--muted,#707070);line-height:1.6}
+.plan-price{font-size:32px;font-weight:800;margin:12px 0;color:var(--ink,#202020)}
+.plan-price small{font-size:13px;font-weight:500;color:var(--muted,#707070)}
+.price-card ul{padding-left:20px;line-height:2;color:var(--ink,#202020)}
+.price-card .btn{display:inline-block;text-decoration:none;margin-top:10px}
+.extra-grid{margin-top:20px}
+.faq-grid details{margin:0}
+.faq-grid summary{cursor:pointer;font-weight:700}
+.faq-grid p{color:var(--muted,#707070);line-height:1.6}
+@media (prefers-contrast:more){.price-card,.extra-card,.faq-grid details{border-width:2px}.price-card p,.extra-card p,.faq-grid p{color:#555}}
 </style>
 
 </main>
