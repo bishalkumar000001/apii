@@ -1855,7 +1855,7 @@ async def download_media(
             media_type=content_type,
             headers={
                 "X-Video-ID": str(result.get("videoId") or ""),
-                title_header: str(result.get("title") or "")[:500],
+                title_header: (str(result.get("title") or "").encode("ascii", "ignore").decode("ascii") or "Audio")[:500],
                 "X-Media-Type": media_type,
                 "X-API-Response": "file"
             }
