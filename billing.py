@@ -58,6 +58,17 @@ def utcnow():
     return datetime.now(timezone.utc)
 
 
+def as_utc_datetime(value):
+    """Normalize MongoDB datetimes (which may be naive) to aware UTC."""
+    if value is None:
+        return None
+    if not isinstance(value, datetime):
+        return value
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
 def key_hash(value: str) -> str:
     return hashlib.sha256(value.encode()).hexdigest()
 
@@ -262,7 +273,7 @@ async def activate_free_plan(user=Depends(current_user)):
         raise HTTPException(409, "The free plan has already been claimed on this account.")
     existing = user.get("subscription") or {}
     now = utcnow()
-    if existing.get("expires_at") and existing["expires_at"] > now:
+    if as_utc_datetime(existing.get("expires_at")) and as_utc_datetime(existing.get("expires_at")) > now:
         raise HTTPException(409, "You already have an active subscription.")
     plan = next(p for p in PLANS if p["id"] == "free")
     result = d.users.update_one(
@@ -312,7 +323,7 @@ async def usage(user=Depends(current_user)):
     d = db()
     sub = user.get("subscription") or {}
     now = utcnow()
-    if sub.get("expires_at") and sub["expires_at"] > now:
+    if as_utc_datetime(sub.get("expires_at")) and as_utc_datetime(sub.get("expires_at")) > now:
         window_start = now - timedelta(days=1) if sub.get("quota_period") == "day" else sub.get("period_start", now - timedelta(days=30))
         used = d.usage.count_documents({"user_id": user["_id"], "billing_mode": "subscription", "created_at": {"$gte": window_start}})
         quota = int(sub.get("quota", 0))
