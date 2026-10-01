@@ -1784,15 +1784,16 @@ async def download_media(
     ),
 
     response: str = Query(
-        "file",
-        description="Response mode: file or json"
+        "job",
+        description="Response mode: job (recommended), file (synchronous), or json (synchronous metadata)"
     )
 ):
-    """Download audio or video and return the actual media by default.
+    """Start an audio/video download job by default to avoid Heroku's 30s H12 timeout.
 
-    /download?url=VIDEO_ID&type=audio -> MP3
-    /download?url=VIDEO_ID&type=video -> MP4
-    Add response=json when metadata JSON is required.
+    /download?url=VIDEO_ID&type=audio -> returns a job ID immediately
+    Poll /download/status/JOB_ID until completed, then fetch file_url.
+    Use response=file only for short downloads where a synchronous file response is desired.
+    Use response=json for synchronous metadata JSON (may timeout for long downloads).
     """
 
     media_type = type.strip().lower()
