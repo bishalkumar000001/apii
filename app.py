@@ -1855,7 +1855,13 @@ async def download_media(
             media_type=content_type,
             headers={
                 "X-Video-ID": str(result.get("videoId") or ""),
-                title_header: (str(result.get("title") or "").encode("ascii", "ignore").decode("ascii") or "Audio")[:500],
+                # HTTP header values must not contain leading whitespace or control characters.
+                title_header: " ".join(
+                    "".join(
+                        ch for ch in str(result.get("title") or "")
+                        if 32 <= ord(ch) <= 126
+                    ).split()
+                )[:500] or "Audio",
                 "X-Media-Type": media_type,
                 "X-API-Response": "file"
             }
