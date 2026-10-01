@@ -5,14 +5,10 @@ import asyncio
 import sqlite3
 import logging
 import urllib.request
-import secrets
-import hashlib
-import hmac
-import json
 from contextlib import asynccontextmanager
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional
 
-from fastapi import FastAPI, HTTPException, Query, Header, Depends, Request
+from fastapi import FastAPI, HTTPException, Query, Header, Depends
 from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -46,7 +42,7 @@ CACHE_EXPIRE_HOURS = float(
 
 MAX_VIDEO_QUALITY = os.getenv(
     "MAX_VIDEO_QUALITY",
-    "720"
+    "2160"
 )
 
 PORT = int(
@@ -72,66 +68,12 @@ COOKIES_FILE = "cookies.txt"
 
 DB_FILE = "cache.db"
 
-SESSION_COOKIE = "vba_session"
-WALLET_CURRENCY = "INR"
-PAYMENT_WEBHOOK_SECRET = os.getenv("PAYMENT_WEBHOOK_SECRET", "").strip()
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "").strip().lower()
-
-
 # =========================================================
-# API KEY AUTHENTICATION
+# VELOCITYBOTS PAID API AUTHENTICATION
 # =========================================================
-# Set API_KEY in Heroku Config Vars. Keep this value secret.
-# Client requests should send: X-API-Key: <your-key>
-# Authorization: Bearer <your-key> is also accepted.
-# For compatibility, ?api_key=<your-key> is also accepted.
-
-API_KEY = os.getenv("API_KEY", "").strip()
-
-
-async def require_api_key(
-    x_api_key: Optional[str] = Header(default=None, alias="X-API-Key"),
-    authorization: Optional[str] = Header(default=None),
-    api_key: Optional[str] = Query(default=None, description="API key (legacy/query compatibility)")
-):
-    """Protect API endpoints with a server-side API key."""
-
-    if not API_KEY:
-        logger.error("API_KEY is not configured on the server.")
-        raise HTTPException(
-            status_code=503,
-            detail="API authentication is not configured on the server."
-        )
-
-    # Prefer the HTTP header. Also accept ?api_key=... for compatibility
-    # with existing Music Bot clients.
-    supplied_key = (x_api_key or api_key or "").strip()
-
-    # Also accept Authorization: Bearer <key> for clients that prefer it.
-    if not supplied_key and authorization:
-        scheme, _, token = authorization.partition(" ")
-        if scheme.lower() == "bearer":
-            supplied_key = token.strip()
-
-    if supplied_key and API_KEY and hmac.compare_digest(supplied_key, API_KEY):
-        return True
-
-    # User-generated Velocity API keys.
-    if supplied_key.startswith("vba_"):
-        now = time.time()
-        with sqlite3.connect(DB_FILE) as conn:
-            conn.row_factory = sqlite3.Row
-            row = conn.execute("SELECT u.id AS user_id, p.requests, s.requests_used, s.expires FROM user_keys k JOIN subscriptions s ON s.user_id=k.user_id AND s.status='active' AND s.expires>? JOIN plans p ON p.id=s.plan_id AND p.active=1 JOIN users u ON u.id=k.user_id WHERE k.key=? AND k.revoked=0 ORDER BY s.expires DESC LIMIT 1", (now, supplied_key)).fetchone()
-        if row:
-            if row[2] >= row[1]:
-                raise HTTPException(status_code=429, detail="API request limit reached for your current subscription.")
-            with sqlite3.connect(DB_FILE) as conn:
-                conn.execute("UPDATE subscriptions SET requests_used=requests_used+1 WHERE user_id=? AND status='active' AND expires>?", (row[0], now))
-                conn.commit()
-            return True
-
-    raise HTTPException(status_code=401, detail="Invalid, revoked, or inactive API key.")
-
+# Per-customer keys, subscriptions, wallet metering and manual billing live
+# in billing.py. Existing endpoint paths and query parameters are preserved.
+from billing import router as billing_router, require_api_key
 
 # =========================================================
 # DOWNLOAD PERFORMANCE SETTINGS
@@ -231,18 +173,11 @@ def init_db():
                 '''
             )
 
-            conn.execute("""CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE NOT NULL, name TEXT, password_hash TEXT NOT NULL, wallet REAL NOT NULL DEFAULT 0, created_time REAL NOT NULL)""")
-            conn.execute("""CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, user_id INTEGER NOT NULL, expires REAL NOT NULL)""")
-            conn.execute("""CREATE TABLE IF NOT EXISTS plans (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE NOT NULL, price REAL NOT NULL, requests INTEGER NOT NULL, active INTEGER NOT NULL DEFAULT 1)""")
-            conn.execute("""CREATE TABLE IF NOT EXISTS subscriptions (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, plan_id INTEGER NOT NULL, started REAL NOT NULL, expires REAL NOT NULL, requests_used INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'active')""")
-            conn.execute("""CREATE TABLE IF NOT EXISTS user_keys (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, name TEXT NOT NULL, key TEXT UNIQUE NOT NULL, created_time REAL NOT NULL, revoked INTEGER NOT NULL DEFAULT 0)""")
-            conn.execute("""CREATE TABLE IF NOT EXISTS wallet_transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, amount REAL NOT NULL, type TEXT NOT NULL, status TEXT NOT NULL, reference TEXT, created_time REAL NOT NULL)""")
-            defaults=[("Free",0,100), ("Basic",99,5000), ("Pro",199,25000), ("Premium",499,100000)]
-            for name,price,requests in defaults:
-                conn.execute("INSERT OR IGNORE INTO plans(name,price,requests) VALUES(?,?,?)",(name,price,requests))
             conn.commit()
 
-        logger.info("SQLite database initialized.")
+        logger.info(
+            "SQLite database initialized."
+        )
 
     except Exception as e:
 
@@ -649,6 +584,8 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+app.include_router(billing_router)
+
 
 # =========================================================
 # CORS
@@ -667,7 +604,12 @@ app.add_middleware(
 # MAGMA.HTML DEVELOPER PORTAL
 # =========================================================
 
-HTML_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "portal.html")
+HTML_FILE = os.path.join(
+    os.path.dirname(
+        os.path.abspath(__file__)
+    ),
+    "Magma.html"
+)
 
 try:
 
@@ -680,7 +622,7 @@ try:
         DEVELOPER_PORTAL_HTML = f.read()
 
     logger.info(
-        "portal.html loaded successfully."
+        "Magma.html loaded successfully."
     )
 
 except Exception as e:
@@ -1369,10 +1311,8 @@ def download_video_sync(
     opts.update({
 
         "format":
-            f"bv*[height<={MAX_VIDEO_QUALITY}]"
-            f"[ext=mp4]+ba[ext=m4a]/"
-            f"b[height<={MAX_VIDEO_QUALITY}]"
-            f"[ext=mp4]/best",
+            f"bestvideo[height<={MAX_VIDEO_QUALITY}]+bestaudio/"
+            f"best[height<={MAX_VIDEO_QUALITY}]/best",
 
         "merge_output_format":
             "mp4",
@@ -1596,186 +1536,6 @@ async def root():
         content=DEVELOPER_PORTAL_HTML,
         status_code=200
     )
-
-
-# =========================================================
-# VELOCITY BOTS PLATFORM — ACCOUNT / WALLET / SUBSCRIPTIONS
-# =========================================================
-
-def _hash_password(password: str) -> str:
-    salt = secrets.token_bytes(16)
-    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 180_000)
-    return salt.hex() + ":" + digest.hex()
-
-
-def _check_password(password: str, stored: str) -> bool:
-    try:
-        salt_hex, digest_hex = stored.split(":", 1)
-        digest = hashlib.pbkdf2_hmac("sha256", password.encode(), bytes.fromhex(salt_hex), 180_000)
-        return hmac.compare_digest(digest.hex(), digest_hex)
-    except Exception:
-        return False
-
-
-def _session_user(token: Optional[str]):
-    if not token:
-        return None
-    now = time.time()
-    with sqlite3.connect(DB_FILE) as conn:
-        row = conn.execute("SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=? AND s.expires>?", (token, now)).fetchone()
-    return row
-
-
-async def require_session(request: Request):
-    auth = request.headers.get("authorization", "")
-    token = auth[7:].strip() if auth.lower().startswith("bearer ") else request.cookies.get(SESSION_COOKIE)
-    user = _session_user(token)
-    if not user:
-        raise HTTPException(status_code=401, detail="Login required")
-    return user
-
-
-def _active_subscription(user_id: int):
-    now = time.time()
-    with sqlite3.connect(DB_FILE) as conn:
-        conn.row_factory = sqlite3.Row
-        row = conn.execute("SELECT s.*,p.name,p.price,p.requests FROM subscriptions s JOIN plans p ON p.id=s.plan_id WHERE s.user_id=? AND s.status='active' AND s.expires>? ORDER BY s.expires DESC LIMIT 1", (user_id, now)).fetchone()
-    return row
-
-
-@app.post("/auth/register")
-async def register(payload: Dict[str, Any]):
-    email=str(payload.get("email","")).strip().lower(); password=str(payload.get("password","")); name=str(payload.get("name","")).strip()[:80]
-    if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email): raise HTTPException(400,"Valid email required")
-    if len(password)<6: raise HTTPException(400,"Password must be at least 6 characters")
-    try:
-        with sqlite3.connect(DB_FILE) as conn:
-            cur=conn.execute("INSERT INTO users(email,name,password_hash,created_time) VALUES(?,?,?,?)",(email,name,_hash_password(password),time.time())); uid=cur.lastrowid
-            free=conn.execute("SELECT id FROM plans WHERE name='Free'").fetchone()[0]
-            conn.execute("INSERT INTO subscriptions(user_id,plan_id,started,expires,requests_used,status) VALUES(?,?,?,?,0,'active')",(uid,free,time.time(),time.time()+365*86400))
-            conn.commit()
-    except sqlite3.IntegrityError: raise HTTPException(409,"An account with this email already exists")
-    token=secrets.token_urlsafe(40)
-    with sqlite3.connect(DB_FILE) as conn: conn.execute("INSERT INTO sessions VALUES(?,?,?)",(token,uid,time.time()+30*86400)); conn.commit()
-    return {"success":True,"token":token}
-
-
-@app.post("/auth/login")
-async def login(payload: Dict[str, Any]):
-    email=str(payload.get("email","")).strip().lower(); password=str(payload.get("password",""))
-    with sqlite3.connect(DB_FILE) as conn: row=conn.execute("SELECT id,password_hash FROM users WHERE email=?",(email,)).fetchone()
-    if not row or not _check_password(password,row[1]): raise HTTPException(401,"Invalid email or password")
-    token=secrets.token_urlsafe(40)
-    with sqlite3.connect(DB_FILE) as conn: conn.execute("INSERT INTO sessions VALUES(?,?,?)",(token,row[0],time.time()+30*86400)); conn.commit()
-    return {"success":True,"token":token}
-
-
-@app.get("/plans")
-async def plans():
-    with sqlite3.connect(DB_FILE) as conn:
-        conn.row_factory=sqlite3.Row; rows=conn.execute("SELECT id,name,price,requests FROM plans WHERE active=1 ORDER BY price").fetchall()
-    return {"plans":[dict(r) for r in rows]}
-
-
-@app.get("/me")
-async def me(user=Depends(require_session)):
-    uid=user[0]; sub=_active_subscription(uid)
-    with sqlite3.connect(DB_FILE) as conn:
-        conn.row_factory=sqlite3.Row; keys=conn.execute("SELECT name,key,created_time FROM user_keys WHERE user_id=? AND revoked=0 ORDER BY id DESC",(uid,)).fetchall()
-        used=conn.execute("SELECT COALESCE(SUM(CASE WHEN type='api' THEN amount ELSE 0 END),0) FROM wallet_transactions WHERE user_id=?",(uid,)).fetchone()[0]
-    return {"email":user[1],"name":user[2],"wallet":user[4],"plan":sub[7] if sub else "Free","requests_used":sub[5] if sub else 0,"request_limit":sub[9] if sub else 100,"keys":[dict(k) for k in keys]}
-
-
-@app.post("/keys")
-async def create_key(payload: Dict[str, Any], user=Depends(require_session)):
-    sub=_active_subscription(user[0])
-    if not sub: raise HTTPException(402,"An active subscription is required")
-    key="vba_"+secrets.token_urlsafe(30)
-    name=str(payload.get("name","API Key")).strip()[:80] or "API Key"
-    with sqlite3.connect(DB_FILE) as conn: conn.execute("INSERT INTO user_keys(user_id,name,key,created_time) VALUES(?,?,?,?)",(user[0],name,key,time.time())); conn.commit()
-    return {"success":True,"name":name,"key":key}
-
-
-@app.get("/usage")
-async def usage(user=Depends(require_session)):
-    sub=_active_subscription(user[0])
-    return {"plan":sub[7] if sub else "Free","requests_used":sub[5] if sub else 0,"request_limit":sub[9] if sub else 100}
-
-
-@app.post("/wallet/deposit")
-async def wallet_deposit(payload: Dict[str, Any], user=Depends(require_session)):
-    amount=float(payload.get("amount",0)); ref=str(payload.get("reference","")).strip()[:120]
-    if amount<1 or amount>100000: raise HTTPException(400,"Amount must be between ₹1 and ₹100,000")
-    with sqlite3.connect(DB_FILE) as conn:
-        conn.execute("INSERT INTO wallet_transactions(user_id,amount,type,status,reference,created_time) VALUES(?,?, 'deposit','pending',?,?)",(user[0],amount,ref,time.time())); conn.commit()
-    return {"success":True,"status":"pending","message":"Payment request created. Wallet is credited only after a verified payment webhook."}
-
-
-@app.post("/payments/webhook")
-async def payment_webhook(request: Request):
-    raw=await request.body(); signature=request.headers.get("X-Payment-Signature","")
-    if PAYMENT_WEBHOOK_SECRET:
-        expected=hmac.new(PAYMENT_WEBHOOK_SECRET.encode(),raw,hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(expected,signature): raise HTTPException(401,"Invalid payment signature")
-    try: data=json.loads(raw.decode())
-    except Exception: raise HTTPException(400,"Invalid JSON")
-    email=str(data.get("email","")).strip().lower(); amount=float(data.get("amount",0)); ref=str(data.get("reference",data.get("payment_id",""))).strip()
-    status=str(data.get("status","")).lower()
-    if status not in {"success","paid","captured"} or amount<=0 or not email or not ref: raise HTTPException(400,"Webhook requires successful status, email, amount and reference")
-    with sqlite3.connect(DB_FILE) as conn:
-        conn.row_factory=sqlite3.Row; u=conn.execute("SELECT id FROM users WHERE email=?",(email,)).fetchone()
-        if not u: raise HTTPException(404,"User not found")
-        exists=conn.execute("SELECT id FROM wallet_transactions WHERE reference=?",(ref,)).fetchone()
-        if exists: return {"success":True,"duplicate":True}
-        conn.execute("UPDATE users SET wallet=wallet+? WHERE id=?",(amount,u[0])); conn.execute("INSERT INTO wallet_transactions(user_id,amount,type,status,reference,created_time) VALUES(?,?, 'deposit','success',?,?)",(u[0],amount,ref,time.time())); conn.commit()
-    return {"success":True,"credited":amount}
-
-
-@app.post("/wallet/purchase")
-async def wallet_purchase(payload: Dict[str, Any], user=Depends(require_session)):
-    plan_id=int(payload.get("plan_id",0)); now=time.time()
-    with sqlite3.connect(DB_FILE) as conn:
-        conn.row_factory=sqlite3.Row; p=conn.execute("SELECT * FROM plans WHERE id=? AND active=1",(plan_id,)).fetchone()
-        if not p: raise HTTPException(404,"Plan not found")
-        u=conn.execute("SELECT wallet FROM users WHERE id=?",(user[0],)).fetchone()
-        if u[0] < p[2]: raise HTTPException(402,"Insufficient wallet balance")
-        conn.execute("UPDATE users SET wallet=wallet-? WHERE id=?",(p[2],user[0])); conn.execute("UPDATE subscriptions SET status='expired' WHERE user_id=? AND status='active'",(user[0],)); conn.execute("INSERT INTO subscriptions(user_id,plan_id,started,expires,requests_used,status) VALUES(?,?,?,?,0,'active')",(user[0],p[0],now,now+30*86400)); conn.execute("INSERT INTO wallet_transactions(user_id,amount,type,status,reference,created_time) VALUES(?,?, 'subscription','success',?,?)",(user[0],-p[2],f"PLAN-{p[0]}-{int(now)}",now)); conn.commit()
-    return {"success":True,"message":f"{p[1]} subscription activated for 30 days"}
-
-
-@app.get("/wallet/transactions")
-async def wallet_transactions(user=Depends(require_session)):
-    with sqlite3.connect(DB_FILE) as conn:
-        conn.row_factory=sqlite3.Row; rows=conn.execute("SELECT amount,type,status,reference,created_time FROM wallet_transactions WHERE user_id=? ORDER BY id DESC LIMIT 100",(user[0],)).fetchall()
-    return {"transactions":[dict(r) for r in rows]}
-
-
-# =========================================================
-# ADMIN
-# =========================================================
-
-async def require_admin(request: Request):
-    user=await require_session(request)
-    if not ADMIN_EMAIL or str(user[1]).lower()!=ADMIN_EMAIL:
-        raise HTTPException(403,"Admin access required")
-    return user
-
-
-@app.get("/admin/overview")
-async def admin_overview(user=Depends(require_admin)):
-    with sqlite3.connect(DB_FILE) as conn:
-        users=conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
-        payments=conn.execute("SELECT COALESCE(SUM(amount),0) FROM wallet_transactions WHERE type='deposit' AND status='success'").fetchone()[0]
-        subs=conn.execute("SELECT COUNT(*) FROM subscriptions WHERE status='active' AND expires>?",(time.time(),)).fetchone()[0]
-        pending=conn.execute("SELECT COALESCE(SUM(amount),0) FROM wallet_transactions WHERE type='deposit' AND status='pending'").fetchone()[0]
-    return {"users":users,"payments":payments,"active_subscriptions":subs,"pending_deposits":pending}
-
-
-@app.get("/admin/deposits")
-async def admin_deposits(user=Depends(require_admin)):
-    with sqlite3.connect(DB_FILE) as conn:
-        conn.row_factory=sqlite3.Row; rows=conn.execute("SELECT w.*,u.email FROM wallet_transactions w JOIN users u ON u.id=w.user_id WHERE w.type='deposit' ORDER BY w.id DESC LIMIT 200").fetchall()
-    return {"deposits":[dict(r) for r in rows]}
 
 
 # =========================================================

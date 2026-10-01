@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 
-<title>Magma API — Developer Portal</title>
+<title>VelocityBots API — Developer Portal</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -892,7 +892,7 @@ footer{
    <span class="brand-mark">
     <i class="fa-solid fa-bolt"></i>
    </span>
-   Magma<span>API</span>
+   VelocityBots<span> API</span>
   </a>
 
   <div class="navlinks">
@@ -900,6 +900,8 @@ footer{
    <a href="#examples">Examples</a>
    <a href="#features">Features</a>
    <a href="#status">Status</a>
+   <a href="#pricing">Pricing</a>
+   <a href="/account">Account</a>
   </div>
 
   <div class="navright">
@@ -909,6 +911,7 @@ footer{
     Checking API...
    </span>
 
+   <a class="pill" href="/account">Get API Key</a>
    <a class="pill" href="#docs">Docs</a>
 
    <button class="menu">
@@ -940,7 +943,7 @@ footer{
    </div>
 
    <p>
-    Magma API gives developers a straightforward way to
+    VelocityBots API gives developers a straightforward way to
     search, process and retrieve media through clean REST endpoints.
    </p>
 
@@ -970,7 +973,12 @@ footer{
 
    <div class="actions">
 
-    <a class="btn primary" href="#docs">
+    <a class="btn primary" href="/account">
+     <i class="fa-solid fa-key"></i>
+     Get API Key
+    </a>
+
+    <a class="btn" href="#docs">
      <i class="fa-solid fa-book-open"></i>
      Read API Docs
     </a>
@@ -990,9 +998,9 @@ footer{
    <div class="tape"></div>
 
    <p>
-    Connected to the live Magma API.
+    Connected to the VelocityBots API.
     Base URL:
-    https://apixbishal-23ad6cb45349.herokuapp.com
+    https://YOUR-API-HOST
    </p>
 
   </div>
@@ -1096,7 +1104,7 @@ footer{
     </div>
 
     <div class="desc2" id="desc">
-     Search the live Magma API.
+     Search the live VelocityBots API.
     </div>
 
    </div>
@@ -1125,7 +1133,7 @@ footer{
      REQUEST
     </h4>
 
-    <pre id="request">GET https://apixbishal-23ad6cb45349.herokuapp.com/search?q=hello
+    <pre id="request">GET https://YOUR-API-HOST/search?q=hello
 Accept: application/json</pre>
 
    </div>
@@ -1238,7 +1246,7 @@ Accept: application/json</pre>
      Copy
     </button>
 
-    <pre id="curl">curl "https://apixbishal-23ad6cb45349.herokuapp.com/search?q=hello"</pre>
+    <pre id="curl">curl "https://YOUR-API-HOST/search?q=hello"</pre>
 
    </div>
 
@@ -1266,7 +1274,7 @@ Accept: application/json</pre>
     </button>
 
     <pre id="js">const response = await fetch(
-  "https://apixbishal-23ad6cb45349.herokuapp.com/search?q=hello"
+  "https://YOUR-API-HOST/search?q=hello"
 );
 
 const data = await response.json();
@@ -1290,7 +1298,7 @@ console.log(data);</pre>
  <div class="section-title">
 
   <div class="small">
-   ✎ why Magma API
+   ✎ why VelocityBots API
   </div>
 
   <h2>
@@ -1504,6 +1512,21 @@ console.log(data);</pre>
 </section>
 
 
+
+<section id="pricing" class="portal-extra">
+ <div class="section-title"><div class="small">simple INR billing</div><h2>Plans for every integration</h2><p>Choose a monthly request allowance. API keys and access are managed in your customer dashboard.</p></div>
+ <div class="pricing-grid">
+  <article class="price-card"><span class="stamp">STARTER</span><h3>Starter</h3><div class="plan-price">₹199 <small>/ month</small></div><p>1,000 API requests</p><ul><li>Personal API key</li><li>Usage tracking</li><li>Customer dashboard</li></ul><a class="btn primary" href="/account">Choose Starter</a></article>
+  <article class="price-card featured"><span class="stamp">POPULAR</span><h3>Pro</h3><div class="plan-price">₹499 <small>/ month</small></div><p>5,000 API requests</p><ul><li>Multiple API keys</li><li>Usage tracking</li><li>Payment history</li></ul><a class="btn primary" href="/account">Choose Pro</a></article>
+  <article class="price-card"><span class="stamp">BUSINESS</span><h3>Business</h3><div class="plan-price">₹999 <small>/ month</small></div><p>15,000 API requests</p><ul><li>Multiple integrations</li><li>Usage tracking</li><li>Owner-reviewed payments</li></ul><a class="btn primary" href="/account">Choose Business</a></article>
+ </div>
+ <div class="extra-grid"><article class="extra-card"><h3>Start in minutes</h3><p>Create an account, generate an API key, add the key to your request header, and test an endpoint.</p><a href="/account">Open dashboard →</a></article><article class="extra-card"><h3>Payment transparency</h3><p>Manual payments remain pending until the owner verifies the transaction. Keep your transaction reference for your records.</p><a href="/account">View account →</a></article><article class="extra-card"><h3>Developer support</h3><p>Use the API docs and interactive tester to check request parameters and response formats before integrating.</p><a href="#docs">Read documentation →</a></article></div>
+</section>
+<section id="faq" class="portal-extra"><div class="section-title"><div class="small">help center</div><h2>Frequently asked questions</h2></div><div class="faq-grid"><details><summary>Where do I get an API key?</summary><p>Create an account at <a href="/account">/account</a>, then create a key in the API keys panel. Copy it immediately because the full key is shown only once.</p></details><details><summary>How does manual payment work?</summary><p>Pay using the details displayed in your account, submit your transaction reference, and wait for the owner to verify and approve it.</p></details><details><summary>How do I protect my key?</summary><p>Keep keys on your server, use the X-API-Key header, and revoke any key that may have been exposed. Do not place secrets in public client-side code.</p></details><details><summary>Where can I check API usage?</summary><p>Sign in to the account dashboard and open Usage & examples to review recent authenticated requests and billing mode.</p></details></div></section>
+<style>
+.portal-extra{margin:70px 0;padding:28px 0;border-top:1px solid var(--line,#293650)}.pricing-grid,.extra-grid,.faq-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}.price-card,.extra-card,.faq-grid details{background:var(--panel,#131b30);border:1px solid var(--line,#293650);border-radius:16px;padding:22px}.price-card.featured{border-color:#7d9aff;box-shadow:0 0 0 1px #7d9aff33}.plan-price{font-size:32px;font-weight:800;margin:12px 0}.plan-price small{font-size:13px;font-weight:500}.price-card ul{padding-left:20px;line-height:2}.price-card .btn{display:inline-block;text-decoration:none;margin-top:10px}.extra-grid{margin-top:20px}.faq-grid details{margin:0}.faq-grid summary{cursor:pointer;font-weight:700}.faq-grid p{color:var(--muted,#aab6cf);line-height:1.6}
+</style>
+
 </main>
 
 
@@ -1518,7 +1541,7 @@ console.log(data);</pre>
    <div>
 
     <div class="footbrand">
-     Magma<span>API</span>
+     VelocityBots<span> API</span>
     </div>
 
     <p>
@@ -1542,7 +1565,7 @@ console.log(data);</pre>
      Status
     </a>
 
-    <a href="https://apixbishal-23ad6cb45349.herokuapp.com"
+    <a href="https://YOUR-API-HOST"
        target="_blank">
      API
     </a>
@@ -1553,7 +1576,7 @@ console.log(data);</pre>
 
 
   <div class="copyr">
-   © 2026 Magma API · Developer Portal
+   © 2026 VelocityBots API · Developer Portal
   </div>
 
  </div>
@@ -1596,7 +1619,7 @@ console.log(data);</pre>
 
    <input
    id="testurl"
-   value="https://apixbishal-23ad6cb45349.herokuapp.com/health">
+   value="https://YOUR-API-HOST/health">
 
    <button
    class="btn primary"
@@ -1628,8 +1651,7 @@ console.log(data);</pre>
    MAGMA API CONFIG
 ========================================================= */
 
-const API_BASE =
-"https://apixbishal-23ad6cb45349.herokuapp.com";
+const API_BASE = window.location.origin;
 
 
 /* =========================================================
@@ -1641,7 +1663,7 @@ const apis = {
  search:{
   route:"GET /search",
   title:"Search media",
-  desc:"Search the live Magma API and receive its actual JSON response.",
+  desc:"Search the live VelocityBots API and receive its actual JSON response.",
   request:
 `GET ${API_BASE}/search?q=hello
 Accept: application/json`
@@ -1668,7 +1690,7 @@ Accept: application/json`
  health:{
   route:"GET /health",
   title:"Health check",
-  desc:"Check the live Magma API service.",
+  desc:"Check the live VelocityBots API service.",
   request:
 `GET ${API_BASE}/health
 Accept: application/json`

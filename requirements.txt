@@ -15,3 +15,8 @@ opentelemetry-api
 opentelemetry-sdk
 opentelemetry-instrumentation-fastapi
 redis
+pymongo[srv]>=4.10.1
+email-validator>=2.2.0
+itsdangerous>=2.2.0
+google-auth>=2.35.0
+requests>=2.32.0

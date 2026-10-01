@@ -1,10 +1,16 @@
 {
-  "name": "Magma Music API",
-  "description": "FastAPI YouTube/YouTube Music API prepared for Heroku",
+  "name": "VelocityBots Paid API",
+  "description": "VelocityBots API with MongoDB customer accounts, personal API keys, subscriptions and manual INR payment review.",
   "buildpacks": [
-    {"url": "heroku/python"},
-    {"url": "heroku/nodejs"},
-    {"url": "https://github.com/heroku/heroku-buildpack-apt"}
+    {
+      "url": "heroku/python"
+    },
+    {
+      "url": "heroku/nodejs"
+    },
+    {
+      "url": "https://github.com/heroku/heroku-buildpack-apt"
+    }
   ],
   "env": {
     "COOKIE_URL": {
@@ -12,14 +18,64 @@
       "required": false,
       "value": "https://raw.githubusercontent.com/themagmalord333-oss/COOKIE/main/cookies.txt"
     },
-    "DOWNLOAD_DIR": {"value": "downloads"},
-    "CACHE_EXPIRE_HOURS": {"value": "24"},
-    "MAX_VIDEO_QUALITY": {"value": "720"},
-    "DOWNLOAD_WORKERS": {"value": "4"},
-    "CONCURRENT_FRAGMENT_DOWNLOADS": {"value": "15"},
-    "HTTP_CHUNK_SIZE": {"value": "10485760"},
-    "SOCKET_TIMEOUT": {"value": "15"},
-    "RETRIES": {"value": "5"},
-    "FRAGMENT_RETRIES": {"value": "5"}
+    "DOWNLOAD_DIR": {
+      "value": "downloads"
+    },
+    "CACHE_EXPIRE_HOURS": {
+      "value": "24"
+    },
+    "MAX_VIDEO_QUALITY": {
+      "value": "720"
+    },
+    "DOWNLOAD_WORKERS": {
+      "value": "4"
+    },
+    "CONCURRENT_FRAGMENT_DOWNLOADS": {
+      "value": "15"
+    },
+    "HTTP_CHUNK_SIZE": {
+      "value": "10485760"
+    },
+    "SOCKET_TIMEOUT": {
+      "value": "15"
+    },
+    "RETRIES": {
+      "value": "5"
+    },
+    "FRAGMENT_RETRIES": {
+      "value": "5"
+    },
+    "MONGODB_URI": {
+      "description": "MongoDB Atlas connection URI for customer accounts, keys, payments and usage.",
+      "required": true
+    },
+    "MONGODB_DATABASE": {
+      "description": "MongoDB database name.",
+      "value": "velocitybots_api"
+    },
+    "SESSION_SECRET": {
+      "description": "Random secret of at least 32 characters for signing sessions.",
+      "required": true
+    },
+    "COOKIE_SECURE": {
+      "description": "Use secure cookies on HTTPS deployments.",
+      "value": "true"
+    },
+    "ADMIN_EMAIL": {
+      "description": "Email used for the owner account bootstrap.",
+      "required": true
+    },
+    "ADMIN_BOOTSTRAP_TOKEN": {
+      "description": "One-time random token to enable the owner role; remove after bootstrap.",
+      "required": true
+    },
+    "GOOGLE_CLIENT_ID": {
+      "description": "Optional Google OAuth web client ID; email/password works without it.",
+      "required": false
+    },
+    "LEGACY_API_KEY_ENABLED": {
+      "description": "Keep false to enforce customer billing; true bypasses billing for the shared API_KEY.",
+      "value": "false"
+    }
   }
 }
