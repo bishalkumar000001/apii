@@ -1,5 +1,6 @@
 import os
 import re
+import secrets
 import time
 import asyncio
 import sqlite3
@@ -113,6 +114,17 @@ FRAGMENT_RETRIES = int(
         "5"
     )
 )
+
+# Long-download polling URLs are process-local and expire after completion.
+# The supplied Procfile starts one Uvicorn worker.
+DOWNLOAD_JOB_TTL_SECONDS = int(
+    os.getenv(
+        "DOWNLOAD_JOB_TTL_SECONDS",
+        str(6 * 60 * 60)
+    )
+)
+DOWNLOAD_JOBS: Dict[str, Dict[str, Any]] = {}
+DOWNLOAD_JOB_TASKS = set()
 
 
 # =========================================================
@@ -1742,6 +1754,62 @@ async def get_thumbnail(
 # AUDIO / VIDEO DOWNLOAD API
 # =========================================================
 
+def _prune_download_jobs() -> None:
+    """Remove completed job records after their temporary URLs expire."""
+    now = time.time()
+    expired = [
+        job_id
+        for job_id, job in DOWNLOAD_JOBS.items()
+        if job.get("status") in {"completed", "failed"}
+        and now - job.get("updated_at", now) > DOWNLOAD_JOB_TTL_SECONDS
+    ]
+    for job_id in expired:
+        DOWNLOAD_JOBS.pop(job_id, None)
+
+
+async def _run_download_job(
+    job_id: str,
+    url: str,
+    media_type: str
+) -> None:
+    job = DOWNLOAD_JOBS.get(job_id)
+    if not job:
+        return
+
+    job.update(status="running", updated_at=time.time())
+    downloader = (
+        download_audio_sync
+        if media_type == "audio"
+        else download_video_sync
+    )
+
+    try:
+        result = await asyncio.to_thread(downloader, url)
+        file_path = result.get("path")
+        if not file_path or not os.path.isfile(file_path):
+            raise RuntimeError(
+                f"{media_type.title()} download finished but its file is missing."
+            )
+        if os.path.getsize(file_path) <= 0:
+            raise RuntimeError(
+                f"{media_type.title()} download produced an empty file."
+            )
+
+        job.update(
+            status="completed",
+            result=result,
+            updated_at=time.time()
+        )
+        logger.info("Download job %s completed", job_id)
+    except Exception as e:
+        logger.exception("Download job %s failed", job_id)
+        job.update(
+            status="failed",
+            error=str(e),
+            updated_at=time.time()
+        )
+
+
 @app.get("/download")
 async def download_media(
 
@@ -1759,7 +1827,7 @@ async def download_media(
 
     response: str = Query(
         "file",
-        description="Response mode: file or json"
+        description="Response mode: file, json, or job for long downloads"
     )
 ):
     """Download audio or video and return the actual media by default.
@@ -1767,6 +1835,7 @@ async def download_media(
     /download?url=VIDEO_ID&type=audio -> MP3
     /download?url=VIDEO_ID&type=video -> MP4
     Add response=json when metadata JSON is required.
+    Use response=job for long downloads to avoid HTTP proxy timeouts.
     """
 
     media_type = type.strip().lower()
@@ -1781,12 +1850,38 @@ async def download_media(
             }
         )
 
-    if response_mode not in {"file", "json"}:
+    if response_mode not in {"file", "json", "job"}:
         raise HTTPException(
             status_code=400,
             detail={
                 "error": "Invalid response mode",
-                "message": "response must be either 'file' or 'json'"
+                "message": "response must be 'file', 'json', or 'job'"
+            }
+        )
+
+    if response_mode == "job":
+        _prune_download_jobs()
+        job_id = secrets.token_urlsafe(32)
+        now = time.time()
+        DOWNLOAD_JOBS[job_id] = {
+            "status": "queued",
+            "media_type": media_type,
+            "created_at": now,
+            "updated_at": now
+        }
+        task = asyncio.create_task(
+            _run_download_job(job_id, url, media_type)
+        )
+        DOWNLOAD_JOB_TASKS.add(task)
+        task.add_done_callback(DOWNLOAD_JOB_TASKS.discard)
+        return JSONResponse(
+            status_code=202,
+            headers={"Cache-Control": "no-store"},
+            content={
+                "status": "queued",
+                "job_id": job_id,
+                "status_url": f"/download/jobs/{job_id}",
+                "poll_after_seconds": 3
             }
         )
 
@@ -1881,6 +1976,106 @@ async def download_media(
                 "message": str(e)
             }
         )
+
+
+@app.get("/download/jobs/{job_id}")
+async def get_download_job(job_id: str):
+    """Check job status; the unguessable job ID acts as its temporary token."""
+    _prune_download_jobs()
+    job = DOWNLOAD_JOBS.get(job_id)
+    if not job:
+        raise HTTPException(
+            status_code=404,
+            detail="Download job not found or its temporary link has expired."
+        )
+
+    response_data: Dict[str, Any] = {
+        "status": job["status"],
+        "media_type": job["media_type"]
+    }
+    if job["status"] == "completed":
+        result = job.get("result", {})
+        response_data.update({
+            "metadata": {
+                key: result.get(key)
+                for key in (
+                    "title",
+                    "duration",
+                    "thumbnail",
+                    "filename",
+                    "videoId",
+                    "uploader",
+                    "filesize"
+                )
+            },
+            "download_url": f"/download/jobs/{job_id}/file"
+        })
+    elif job["status"] == "failed":
+        response_data["error"] = job.get("error", "Download failed.")
+
+    return JSONResponse(
+        content=response_data,
+        headers={"Cache-Control": "no-store"}
+    )
+
+
+@app.get("/download/jobs/{job_id}/file")
+async def get_download_job_file(job_id: str):
+    """Serve the finished file using the private, expiring job URL."""
+    _prune_download_jobs()
+    job = DOWNLOAD_JOBS.get(job_id)
+    if not job:
+        raise HTTPException(
+            status_code=404,
+            detail="Download job not found or its temporary link has expired."
+        )
+    if job["status"] != "completed":
+        raise HTTPException(
+            status_code=409,
+            detail="The download job is not complete yet."
+        )
+
+    result = job.get("result", {})
+    file_path = result.get("path")
+    filename = result.get("filename") or os.path.basename(file_path or "")
+    if not file_path or not os.path.isfile(file_path):
+        raise HTTPException(
+            status_code=404,
+            detail="The completed download file is no longer available."
+        )
+
+    media_type = job["media_type"]
+    if media_type == "audio":
+        content_type = "audio/mpeg"
+        title_header = "X-Audio-Title"
+    else:
+        ext = os.path.splitext(filename)[1].lower()
+        content_type = {
+            ".mp4": "video/mp4",
+            ".webm": "video/webm",
+            ".mkv": "video/x-matroska"
+        }.get(ext, "video/mp4")
+        title_header = "X-Video-Title"
+
+    safe_title = " ".join(
+        "".join(
+            ch for ch in str(result.get("title") or "")
+            if 32 <= ord(ch) <= 126
+        ).split()
+    )[:500] or "Audio"
+
+    return FileResponse(
+        path=file_path,
+        filename=filename,
+        media_type=content_type,
+        headers={
+            "X-Video-ID": str(result.get("videoId") or ""),
+            title_header: safe_title,
+            "X-Media-Type": media_type,
+            "X-API-Response": "file",
+            "Cache-Control": "no-store"
+        }
+    )
 
 
 # =========================================================
